@@ -1,8 +1,8 @@
 package com.axarit.grpc.client;
 
-import com.axarit.grpc.grpc.HelloRequest;
-import com.axarit.grpc.grpc.HelloResponse;
-import com.axarit.grpc.grpc.HelloServiceGrpc;
+import com.axarit.grpc.HelloRequest;
+import com.axarit.grpc.HelloResponse;
+import com.axarit.grpc.HelloServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 

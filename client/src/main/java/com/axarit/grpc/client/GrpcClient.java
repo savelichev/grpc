@@ -3,11 +3,14 @@ package com.axarit.grpc.client;
 import com.axarit.grpc.HelloRequest;
 import com.axarit.grpc.HelloResponse;
 import com.axarit.grpc.HelloServiceGrpc;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class GrpcClient {
 
@@ -21,9 +24,9 @@ public class GrpcClient {
 
         asyncStub(channel);
         blockingStub(channel);
+        futureStub(channel);
 
         channel.shutdown();
-
     }
 
     private static void asyncStub(ManagedChannel channel) {
@@ -33,30 +36,7 @@ public class GrpcClient {
                 .setLastName("gRPC - asyncStub")
                 .build();
 
-        stub.hello(
-                request,
-                new StreamObserver<>() { //Callback
-                    @Override
-                    public void onNext(HelloResponse value) {
-                        System.out.println(Thread.currentThread().getName()+" : " + value.getGreeting());
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        System.out.println("axa onCompleted");
-                    }
-                }
-        );
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        stub.hello(request, new StudentCallback());
     }
 
     private static void blockingStub(ManagedChannel channel) {
@@ -66,6 +46,29 @@ public class GrpcClient {
                 .setFirstName("Axarit")
                 .setLastName("gRPC - blockingStub")
                 .build());
-        System.out.println(Thread.currentThread().getName()+" : " + helloResponse.getGreeting());
+        System.out.println(Thread.currentThread().getName() + " : " + helloResponse.getGreeting());
+    }
+
+    private static void futureStub(ManagedChannel channel) {
+        final HelloServiceGrpc.HelloServiceFutureStub stub = HelloServiceGrpc.newFutureStub(channel);
+        final HelloRequest request = HelloRequest.newBuilder()
+                .setFirstName("Axarit")
+                .setLastName("gRPC - futureStub")
+                .build();
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        final ListenableFuture<HelloResponse> listenableFuture = stub.hello(request);
+        Futures.addCallback(listenableFuture, new StudentFutureCallback(), executorService);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

@@ -7,11 +7,15 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
+import java.util.concurrent.Executors;
+
 public class GrpcClient {
 
     public static void main(String[] args) {
+        var executorService = Executors.newFixedThreadPool(10);
         ManagedChannel channel = ManagedChannelBuilder
                 .forAddress("localhost", 8080)
+                .executor(executorService)
                 .usePlaintext()
                 .build();
 
@@ -34,7 +38,7 @@ public class GrpcClient {
                 new StreamObserver<>() { //Callback
                     @Override
                     public void onNext(HelloResponse value) {
-                        System.out.println(value.getGreeting());
+                        System.out.println(Thread.currentThread().getName()+" : " + value.getGreeting());
                     }
 
                     @Override
@@ -62,7 +66,6 @@ public class GrpcClient {
                 .setFirstName("Axarit")
                 .setLastName("gRPC - blockingStub")
                 .build());
-
-        System.out.println(helloResponse.getGreeting());
+        System.out.println(Thread.currentThread().getName()+" : " + helloResponse.getGreeting());
     }
 }

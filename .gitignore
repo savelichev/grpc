@@ -2,3 +2,6 @@
 /proto/target/
 /server/target/
 /.idea/
+/stubs/client/target/
+/stubs/proto/target/
+/stubs/server/target/
